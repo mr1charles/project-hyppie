@@ -1,0 +1,6 @@
+# Project Hyppie HyperOS performance (measured on SM-A135M / Mali-G52)
+# HWUI on OpenGL: 1.2% janky frames vs 9-12% on Vulkan for home-screen swipes
+debug.hwui.renderer=skiagl
+# The A13 Lineage tree marks every A13 as low-RAM (Android Go). Real 4 GB Xiaomi phones run HyperOS
+# with low_ram=false; with true, HyperOS/apps trim features, caches and recents.
+ro.config.low_ram=false

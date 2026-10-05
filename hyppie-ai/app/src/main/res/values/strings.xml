@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="agent_description">Lets the AI Assistant read the screen and tap, type and scroll for you, one step at a time, when you ask it to do a task. It asks before anything risky like sending, buying or deleting.</string>
+</resources>

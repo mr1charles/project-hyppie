@@ -1,0 +1,4 @@
+# Project Hyppie HyperOS fixes: replace Qualcomm-only system_ext libraries with Mali-safe patched copies
+on early-init
+    mount none /vendor/lib64/hyppie/libgralloc.system.qti.so /system_ext/lib64/libgralloc.system.qti.so bind
+    mount none /vendor/lib64/hyppie/libskewknob_system.so /system_ext/lib64/libskewknob_system.so bind

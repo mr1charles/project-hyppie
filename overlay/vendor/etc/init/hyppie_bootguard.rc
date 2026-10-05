@@ -1,0 +1,83 @@
+# Project Hyppie boot guard + persistent logcat (see /vendor/bin/hyppie_bootguard.sh)
+service hyppie_guard /vendor/bin/hyppie_bootguard.sh start
+    user root
+    group root
+    oneshot
+    disabled
+    seclabel u:r:hyppie_guard:s0
+
+service hyppie_timer /vendor/bin/hyppie_bootguard.sh timer
+    user root
+    group root
+    oneshot
+    disabled
+    seclabel u:r:hyppie_guard:s0
+
+service hyppie_earlyadb /vendor/bin/hyppie_bootguard.sh earlyadb
+    user root
+    group root
+    oneshot
+    disabled
+    seclabel u:r:hyppie_guard:s0
+
+service hyppie_touch /vendor/bin/hyppie_bootguard.sh touch
+    user root
+    group root system
+    disabled
+    seclabel u:r:hyppie_guard:s0
+
+service hyppie_selftest /vendor/bin/hyppie_bootguard.sh selftest
+    user root
+    group root system log
+    oneshot
+    disabled
+    seclabel u:r:hyppie_guard:s0
+
+service hyppie_keepalive /vendor/bin/hyppie_bootguard.sh keepalive
+    user root
+    group root system shell
+    disabled
+    seclabel u:r:hyppie_guard:s0
+
+service hyppie_logcat /vendor/bin/hyppie_bootguard.sh logcat
+    user root
+    group root log
+    disabled
+    seclabel u:r:hyppie_guard:s0
+
+service hyppie_compile /vendor/bin/hyppie_bootguard.sh compile
+    class late_start
+    user root
+    group root system
+    oneshot
+    disabled
+    seclabel u:r:hyppie_guard:s0
+
+service hyppie_done /vendor/bin/hyppie_bootguard.sh done
+    user root
+    group root
+    oneshot
+    disabled
+    seclabel u:r:hyppie_guard:s0
+
+on post-fs
+    start hyppie_guard
+    start hyppie_timer
+
+on post-fs-data
+    start hyppie_touch
+    start hyppie_logcat
+
+on property:sys.boot_completed=1
+    write /sys/module/sec_reboot/parameters/hyppie_boot_done 1
+    start hyppie_done
+    start hyppie_compile
+    start hyppie_selftest
+
+# ADB always on (developer builds only: ro.vendor.hyppie.devadb=1). Public release builds keep
+# normal Android ADB (off, with authorization).
+on post-fs-data && property:ro.vendor.hyppie.devadb=1
+    start hyppie_earlyadb
+
+on property:sys.boot_completed=1 && property:ro.vendor.hyppie.devadb=1
+    start hyppie_keepalive

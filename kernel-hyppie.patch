@@ -1,0 +1,155 @@
+diff --git a/drivers/samsung/sec_reboot.c b/drivers/samsung/sec_reboot.c
+index 1d64224a4..b1b8f1110 100644
+--- a/drivers/samsung/sec_reboot.c
++++ b/drivers/samsung/sec_reboot.c
+@@ -321,6 +321,74 @@ static void sec_power_off(void)
+ 	}
+ }
+ 
++
++/*
++ * Project Hyppie fail-safe: a failed boot must always end up in recovery (TWRP), never stuck.
++ *  - reboots requested because something failed ("*-failed", panic) are redirected to recovery
++ *  - a timer reboots to recovery unless userspace reports boot completion in time
++ *    (echo 1 > /sys/module/sec_reboot/parameters/hyppie_boot_done)
++ */
++#include <linux/moduleparam.h>
++#include <linux/workqueue.h>
++#include <linux/sched/signal.h>
++#include <linux/rcupdate.h>
++#include <linux/reboot.h>
++
++static bool hyppie_boot_done;
++static unsigned int hyppie_boot_timeout = 25 * 60;   /* seconds */
++module_param(hyppie_boot_done, bool, 0644);
++module_param(hyppie_boot_timeout, uint, 0644);
++
++static bool hyppie_failed_cmd(const char *cmd)
++{
++	size_t n;
++
++	if (oops_in_progress)
++		return true;
++	if (!cmd)
++		return false;
++	n = strlen(cmd);
++	return !strncmp(cmd, "panic", 5) || strstr(cmd, "failed") ||
++	       (n >= 7 && !strcmp(cmd + n - 7, "-failed"));
++}
++
++static bool hyppie_userspace_up(void)
++{
++	struct task_struct *p;
++	bool up = false;
++
++	rcu_read_lock();
++	for_each_process(p) {
++		if (!strcmp(p->comm, "system_server")) {
++			up = true;
++			break;
++		}
++	}
++	rcu_read_unlock();
++	return up;
++}
++
++static void hyppie_boot_timer_fn(struct work_struct *work)
++{
++	if (hyppie_boot_done)
++		return;
++	/* Android's main system is running: the userspace boot guard owns late-stage failures */
++	if (hyppie_userspace_up()) {
++		pr_info("hyppie: system_server is up, kernel boot timer stands down\n");
++		return;
++	}
++	pr_emerg("hyppie: boot not completed after %us, rebooting to recovery\n", hyppie_boot_timeout);
++	kernel_restart("recovery");
++}
++static DECLARE_DELAYED_WORK(hyppie_boot_timer, hyppie_boot_timer_fn);
++
++static int __init hyppie_boot_timer_init(void)
++{
++	schedule_delayed_work(&hyppie_boot_timer, hyppie_boot_timeout * HZ);
++	return 0;
++}
++late_initcall(hyppie_boot_timer_init);
++
+ static void sec_reboot(enum reboot_mode reboot_mode, const char *cmd)
+ {
+ 	local_irq_disable();
+@@ -332,6 +400,11 @@ static void sec_reboot(enum reboot_mode reboot_mode, const char *cmd)
+ 	/* LPM mode prevention */
+ 	sec_set_reboot_magic(SEC_REBOOT_NORMAL, SEC_REBOOT_END_OFFSET, 0xFF);
+ 
++	if (hyppie_failed_cmd(cmd)) {
++		pr_emerg("hyppie: failure reboot (%s) redirected to recovery\n", cmd ? cmd : "oops");
++		cmd = "recovery";
++	}
++
+ 	if (cmd) {
+ 		unsigned long value;
+ 		if (!strcmp(cmd, "recovery-update"))
+diff --git a/include/linux/netdevice.h b/include/linux/netdevice.h
+index 6e70e5dc0..2d8188a6b 100644
+--- a/include/linux/netdevice.h
++++ b/include/linux/netdevice.h
+@@ -577,6 +577,7 @@ enum netdev_queue_state_t {
+  * netif_xmit*stopped functions, they should only be using netif_tx_*.
+  */
+ 
++struct xdp_umem; /* Project Hyppie: XDP sockets need umem in the queues */
+ struct netdev_queue {
+ /*
+  * read-mostly part
+@@ -614,6 +615,9 @@ struct netdev_queue {
+ #ifdef CONFIG_BQL
+ 	struct dql		dql;
+ #endif
++#ifdef CONFIG_XDP_SOCKETS
++	struct xdp_umem		*umem;
++#endif
+ 
+ 	ANDROID_KABI_RESERVE(1);
+ 	ANDROID_KABI_RESERVE(2);
+@@ -736,6 +740,9 @@ struct netdev_rx_queue {
+ 	struct kobject			kobj;
+ 	struct net_device		*dev;
+ 	struct xdp_rxq_info		xdp_rxq;
++#ifdef CONFIG_XDP_SOCKETS
++	struct xdp_umem			*umem;
++#endif
+ 
+ 	ANDROID_KABI_RESERVE(1);
+ 	ANDROID_KABI_RESERVE(2);
+diff --git a/security/selinux/selinuxfs.c b/security/selinux/selinuxfs.c
+index d93fd1a98..fa5906dac 100644
+--- a/security/selinux/selinuxfs.c
++++ b/security/selinux/selinuxfs.c
+@@ -133,6 +133,16 @@ static ssize_t sel_read_enforce(struct file *filp, char __user *buf,
+ }
+ 
+ #ifdef CONFIG_SECURITY_SELINUX_DEVELOP
++/* Project Hyppie: bring-up builds can force SELinux permissive (log, never block) with
++ * hyppie_permissive=1 on the kernel command line; Android init cannot switch it back. */
++static int hyppie_permissive = 1;	/* bring-up default: set to 0 for release builds */
++static int __init hyppie_permissive_setup(char *str)
++{
++	hyppie_permissive = simple_strtol(str, NULL, 0) ? 1 : 0;
++	return 1;
++}
++__setup("hyppie_permissive=", hyppie_permissive_setup);
++
+ static ssize_t sel_write_enforce(struct file *file, const char __user *buf,
+ 				 size_t count, loff_t *ppos)
+ 
+@@ -159,6 +169,10 @@ static ssize_t sel_write_enforce(struct file *file, const char __user *buf,
+ 		goto out;
+ 
+ 	new_value = !!new_value;
++	if (hyppie_permissive && new_value) {
++		pr_info("hyppie: keeping SELinux permissive (hyppie_permissive=1)\n");
++		new_value = 0;
++	}
+ 
+ 	old_value = enforcing_enabled(state);
+ 	if (new_value != old_value) {

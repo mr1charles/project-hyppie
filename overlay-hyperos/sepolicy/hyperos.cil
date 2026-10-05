@@ -1,0 +1,2 @@
+; Project Hyppie HyperOS: let init bind-mount patched libraries over system_ext
+(allow init_202504 system_lib_file_202504 (file (mounton getattr)))
