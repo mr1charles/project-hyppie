@@ -64,7 +64,7 @@ h2{font-size:clamp(28px,4vw,40px);letter-spacing:-.035em;margin:0 0 10px;line-he
 .ic{width:38px;height:38px;border-radius:11px;background:rgba(155,92,255,.16);display:grid;place-items:center;margin-bottom:12px;font-size:18px}
 .split{display:grid;grid-template-columns:1fr 1fr;gap:34px;align-items:center}
 .vid{border-radius:26px;overflow:hidden;border:1px solid var(--line);background:#000;max-width:330px;margin:0 auto;box-shadow:0 30px 70px -30px rgba(155,92,255,.55)}
-.vid video{width:100%;aspect-ratio:1080/2408;object-fit:cover}
+.vid video{width:100%;aspect-ratio:1080/2408;object-fit:cover}.vid video[controls]{aspect-ratio:9/16;object-fit:contain;background:#000}
 .tick{list-style:none;padding:0;margin:18px 0 0;display:grid;gap:10px}.tick li{padding-left:30px;position:relative;color:var(--mute)}.tick li:before{content:"✓";position:absolute;left:0;color:var(--ok);font-weight:800}
 .boot{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
 .boot figure{margin:0;border-radius:18px;overflow:hidden;border:1px solid var(--line);transition:transform .35s var(--ease)}.boot figure:hover{transform:translateY(-6px) scale(1.02)}
@@ -107,7 +107,7 @@ footer{padding:44px 0 70px;color:var(--mute);font-size:13.5px;border-top:1px sol
 <a class="skip" href="#downloads">Skip to downloads</a>
 <nav><div class="wrap">
   <a class="logo" href="#top"><svg viewBox="-1.1 -1.1 2.2 2.2" aria-hidden="true"><path d="M0,-1 L.16,-.16 L1,0 L.16,.16 L0,1 L-.16,.16 L-1,0 L-.16,-.16Z" fill="#c9a7ff"/></svg>Project <span>Hyppie</span></a>
-  <div class="links"><a href="#features">Features</a><a href="#assistant">AI Assistant</a><a href="#boot">Startup</a><a href="#story">Story</a><a href="#install">Install</a><a href="#faq">FAQ</a></div>
+  <div class="links"><a href="#watch">Film</a><a href="#features">Features</a><a href="#assistant">AI Assistant</a><a href="#boot">Startup</a><a href="#story">Story</a><a href="#install">Install</a><a href="#faq">FAQ</a></div>
   <a class="cta" href="#downloads">Download</a>
 </div></nav>
 
@@ -116,7 +116,7 @@ footer{padding:44px 0 70px;color:var(--mute);font-size:13.5px;border-top:1px sol
     <span class="badge"><i></i>Public beta 1.0 · SM-A135M only</span>
     <h1>HyperOS 3 on a <em>Galaxy&nbsp;A13</em></h1>
     <p class="lead">A 32-bit Samsung budget phone running Xiaomi's newest system on 64-bit Android 16, with Super Island, Liquid Glass, root and an AI assistant that actually uses your phone. Free, with every fix documented.</p>
-    <div class="btns"><a class="btn p" href="#downloads">Download</a><a class="btn s" href="#install">How to install</a><a class="btn s" href="PROJECT_HYPPIE_WRITEUP.md">Read the full story</a></div>
+    <div class="btns"><a class="btn p" href="#downloads">Download</a><a class="btn s" href="#install">How to install</a><a class="btn s" href="#watch">Watch the film</a><a class="btn s" href="https://github.com/mr1charles/project-hyppie/blob/main/docs/PROJECT_HYPPIE_WRITEUP.md">Read the write-up</a></div>
     <div class="facts"><div><b>2 min</b>to boot</div><div><b>16</b>sensors working</div><div><b>~3%</b>janky frames on home</div><div><b>2 ROMs</b>HyperOS · LineageOS</div></div>
   </div>
   <div class="phone-wrap"><div>
@@ -130,6 +130,15 @@ footer{padding:44px 0 70px;color:var(--mute);font-size:13.5px;border-top:1px sol
     <div class="dots" id="dots" aria-label="Screenshots"></div>
   </div></div>
 </div></header>
+
+<section id="watch"><div class="wrap split">
+  <div>
+    <p class="eyebrow reveal">The film</p><h2 class="reveal">The whole story in 14 minutes</h2>
+    <p class="sub reveal" style="margin-bottom:22px">Every wall we hit, every crash and every fix, from the first failed recovery to a booting HyperOS, with a tour of the finished system and how to flash it yourself. Vertical, with captions.</p>
+    <div class="btns reveal"><a class="btn p" href="https://github.com/mr1charles/project-hyppie/releases/latest/download/Project-Hyppie-The-Full-Story.mp4">Download full quality (227 MB)</a></div>
+  </div>
+  <div class="vid reveal" style="max-width:340px"><video src="assets/story-720p.mp4" poster="assets/story-poster.jpg" controls playsinline preload="none" aria-label="Project Hyppie: the full story, 14 minutes"></video></div>
+</div></section>
 
 <section id="features"><div class="wrap">
   <p class="eyebrow reveal">What you get</p><h2 class="reveal">Everything HyperOS, on hardware it was never made for</h2>
@@ -182,7 +191,7 @@ footer{padding:44px 0 70px;color:var(--mute);font-size:13.5px;border-top:1px sol
 
 <section id="story"><div class="wrap">
   <p class="eyebrow reveal">The journey</p><h2 class="reveal">How a 32-bit phone got here</h2>
-  <p class="sub reveal">The short version. The <a href="PROJECT_HYPPIE_WRITEUP.md">full write-up</a> lists every error, cause and fix.</p>
+  <p class="sub reveal">The short version. The <a href="https://github.com/mr1charles/project-hyppie/blob/main/docs/PROJECT_HYPPIE_WRITEUP.md">full write-up</a> lists every error, cause and fix.</p>
   <div class="timeline">
     <div class="reveal"><b>Getting in: TWRP</b><span>Samsung rejected every custom vbmeta until one byte (the flags, at offset 120) was changed in Samsung's own, keeping its signature trailer.</span></div>
     <div class="reveal"><b>The 32-bit wall</b><span>The A13 ships a 32-bit system, but HyperOS 3 is 64-bit only. We built a hybrid vendor from the LineageOS Galaxy A21s (same Exynos 850 chip) plus 190 A13 files.</span></div>
@@ -205,7 +214,7 @@ footer{padding:44px 0 70px;color:var(--mute);font-size:13.5px;border-top:1px sol
     <li class="reveal"><b>Flash the ROM:</b> back in Download mode, flash <code>2-hyperos-3.1-magisk.tar</code> (or the LineageOS one) in <b>AP</b>.</li>
     <li class="reveal"><b>Boot and wait.</b> You'll see the startup pages, then the HyperOS animation. The first boot takes a few minutes and apps get optimised once (a "Compiling apps" notification). Then install <code>AIAssistant.apk</code> and enable it in Accessibility.</li>
   </ol>
-  <p class="reveal" style="color:var(--mute);margin-top:18px">Stuck? After three failed boots the phone goes to TWRP by itself. Flash again, or go back to Samsung stock firmware with Odin. Full guide: <a href="INSTALL.md">INSTALL.md</a>.</p>
+  <p class="reveal" style="color:var(--mute);margin-top:18px">Stuck? After three failed boots the phone goes to TWRP by itself. Flash again, or go back to Samsung stock firmware with Odin. Full guide: <a href="https://github.com/mr1charles/project-hyppie/blob/main/docs/INSTALL.md">INSTALL.md</a>.</p>
 </div></section>
 
 <section id="downloads"><div class="wrap">
@@ -225,7 +234,9 @@ footer{padding:44px 0 70px;color:var(--mute);font-size:13.5px;border-top:1px sol
 <tr><td class="n">Aperture.apk</td><td class="d">Working camera app (Xiaomi's own camera app is locked to Xiaomi phones).</td><td class="z">8.1 MB</td><td><a class="dl" href="https://github.com/mr1charles/project-hyppie/releases/latest/download/Aperture.apk">Download</a></td></tr>
 <tr><td class="n">Magisk-v30.7.apk</td><td class="d">Magisk app to manage root.</td><td class="z">11.6 MB</td><td><a class="dl" href="https://github.com/mr1charles/project-hyppie/releases/latest/download/Magisk-v30.7.apk">Download</a></td></tr>
 <tr><td class="n">SHA256SUMS</td><td class="d">Checksums to verify every download.</td><td class="z">0.0 MB</td><td><a class="dl g" href="https://github.com/mr1charles/project-hyppie/releases/latest/download/SHA256SUMS">Download</a></td></tr>
-<tr><td class="n">INSTALL.md</td><td class="d">Step-by-step install guide.</td><td class="z">0.0 MB</td><td><a class="dl g" href="INSTALL.md">Download</a></td></tr>
+<tr><td class="n">INSTALL.md</td><td class="d">Step-by-step install guide.</td><td class="z">0.0 MB</td><td><a class="dl g" href="https://github.com/mr1charles/project-hyppie/blob/main/docs/INSTALL.md">Download</a></td></tr>
+<tr class="grp"><td colspan="4">The film</td></tr>
+<tr><td class="n">Project-Hyppie-The-Full-Story.mp4</td><td class="d">The whole story in 14 minutes (vertical, 1080x1920, captions).</td><td class="z">227.0 MB</td><td><a class="dl" href="https://github.com/mr1charles/project-hyppie/releases/latest/download/Project-Hyppie-The-Full-Story.mp4">Download</a></td></tr>
 </tbody>
   </table></div>
 </div></section>
