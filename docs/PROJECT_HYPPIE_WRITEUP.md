@@ -96,18 +96,28 @@ Base ROM: xiaomi.eu `HOUJI OS3.0.307.0` (Xiaomi 14, Android 16, product `missi`)
 | 14 | — | — | A13 framework overlay back (`HyppieA13Framework.apk`, built with aapt2 + an OpenSSL v1 signer since there is no Java): teardrop cutout for the status bar / **Super Island**, rounded corners, and `config_biometric_sensors 0:2:15` so the **fingerprint** HIDL HAL is registered |
 | 15 | Crash loops never reached TWRP for 25 min | the hang timer stands down while `system_server` exists | Guard counts `system_server` restarts: 4 before boot completes → TWRP |
 
-## 6. Status (2026-10-04) and open issues
+## 6. Status (2026-10-05, public beta 1.0)
 
-Working on HyperOS 3: boot in ~75 s, touch, swipe-up home (6/6), stacked recents, Liquid Glass blur
-(costs nothing measurable), Super Island around the notch, Control Center 3–6 % janky frames, camera
-(Aperture), fingerprint registered, Magisk 30.7, ADB always on, automatic recovery on hangs/crash loops.
+Working on HyperOS 3: boot in about 2 minutes, touch (including after screen off, via Samsung's `tsp/enabled`
+protocol), swipe-up home, Liquid Glass blur, Super Island and Always-On Display, Control Center ~12 % janky frames
+(after removing the theme's heavy SystemUI layer and precompiling), home screen ~3 %, 4 cameras through Aperture,
+16 sensors, Wi-Fi, Bluetooth, GPS, speaker, vibration, adoptable microSD, Magisk 30.7, Xiaomi themes applied with
+root, wireless debugging over Tailscale, automatic recovery on hangs and crash loops. A 23-check automated test
+(`10-fulltest.sh`) passes 21 with 2 warnings.
+
+New since the first write-up:
+- **Touch fix** (round 10 above) finally solved by telling the Himax driver the screen state through
+  `/sys/class/sec/tsp/enabled` after the backlight is on.
+- **AI Assistant** (`hyppie-ai/`): hold the side button; a Groq-based planner turns a long request into steps and an
+  accessibility service performs them with a live checklist; offline quick commands.
+- **Startup pages**: the HyperOS package shows credits, what works and what is not supported before the HyperOS boot
+  animation (a `bootanimation.zip` bind-mounted over `/product/media`, built by `bootanim/make_bootanim.py`).
 
 Open:
-- **Camera preview** stays black in Aperture although photos are captured correctly.
-- **Xiaomi HyperAI**: present in Settings, untested (needs Wi-Fi; many features are cloud/model-gated).
-- **Telephony / USB file transfer / audio / GPS** not yet verified end-to-end.
-- Release builds must go back to **SELinux enforcing** (`hyppie_permissive=0` + rules for the logged
-  denials) and normal ADB authorization.
+- **Fingerprint**: the HAL is registered but HyperOS reports the hardware as not detected; enrolling is untested.
+- **SELinux is permissive** in this release (bring-up kernel switch); enforcing needs every logged denial turned into a rule.
+- **Calls, SMS, mobile data** are untested (no SIM available).
+- Xiaomi's Camera app is model-locked (use Aperture); China-only HyperAI features need Xiaomi cloud services.
 
 ## 7. Tooling built along the way (`~/ProjectHyppie`)
 
